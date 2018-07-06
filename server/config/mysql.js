@@ -10,23 +10,29 @@ const client  = new Client({
   }
 });
 
-const query = async function (sql, values = []) {
-  let result = await client.query(sql, values)
+const query = async function (sql) {
+  let result = await client.query(sql)
   return result
 }
 
 const apiList =
   `create table if not exists api_list(
-  id int auto_increment primary key,
-  url varchar(100),
-  title varchar(100)
+  id INT NOT NULL AUTO_INCREMENT,
+  url VARCHAR(100) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  des VARCHAR(100) NOT NULL,
+  type VARCHAR(100) NOT NULL,
+  data VARCHAR(20000) NOT NULL,
+  PRIMARY KEY ( id )
   );`
 
 const menuLevel = function (name) {
   return `create table if not exists ${name}(
-  id int auto_increment primary key,
-  name varchar(100),
-  child_id varchar(100)
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  des VARCHAR(100) NOT NULL,
+  child_id VARCHAR(100) NOT NULL,
+  PRIMARY KEY ( id )
   );`
 }
 
@@ -46,16 +52,35 @@ createTable(apiList)
 createTable(menuLevel('menu_level_1'))
 
 // 查询api列表
-const queryApiList = function(values = []){
+const queryApiList = function () {
   let sql = 'SELECT * FROM `api_list`'
-  return query(sql, values)
+  return query(sql)
 }
 
-const addApi = async function (values) {
-  let sql = ''
+// 查询api列表 by id
+const queryApiListById = function (id) {
+  let sql = `SELECT * FROM api_list WHERE id=${id}`
+  return query(sql)
+}
+
+// 查询菜单列表
+const queryMenusList = function () {
+  let sql = 'SELECT * FROM `menu_level_1`'
+  return query(sql)
+}
+
+// 添加目录
+const addDecorator = function (params) {
+  params = JSON.parse(params)
+  let sql = `insert into menu_level_1(name,des,child_id) values('${params.name}','${params.des}','')`
+  console.log(sql)
+  return query(sql)
 }
 
 module.exports = {
   query,
-  queryApiList
+  queryApiList,
+  queryApiListById,
+  queryMenusList,
+  addDecorator
 }
