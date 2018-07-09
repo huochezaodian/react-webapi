@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Form, Input, Button, Checkbox} from 'antd';
+import {Form, Input, Button, Checkbox, message as Message} from 'antd';
+import Util from '@src/config/Util';
 const FormItem = Form.Item;
 const CheckboxGroup = Checkbox.Group;
 
@@ -16,16 +17,35 @@ const methods = ['get', 'post'];
 
 class ListForm extends React.Component {
   state = {
-    params: []
+    parentId: ''
   };
-  static propTypes = {
-    form: PropTypes.object.isRequired
-  };
+  componentWillMount () {
+    const params = this.props.history.location.state;
+    if (params) {
+      this.setState({
+        parentId: params.id || ''
+      });
+    } else {
+      this.props.history.goBack();
+    }
+  }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        let data = {...values};
+        data.parentId = this.state.parentId;
+        data.type = data.type.join(',');
+        Util.fetchData('/api/add/api', {
+          data
+        }).then(res => {
+          if (res.errorCode === 0) {
+            Message.success('保存成功');
+            this.props.history.push('/' + this.state.parentId + values.url);
+          } else {
+            Message.error(res.errorMessage || '提交失败');
+          }
+        });
       }
     });
   }
@@ -49,9 +69,11 @@ class ListForm extends React.Component {
           {...formItemLayout}
           label="接口"
         >
-          {getFieldDecorator('api', {
+          {getFieldDecorator('url', {
             rules: [{
               required: true, message: '请输入接口!'
+            }, {
+              partten: /^\/\w+/, message: '开头必须有/'
             }]
           })(
             <Input size='large' placeholder='请输入接口'/>
@@ -97,6 +119,11 @@ class ListForm extends React.Component {
     );
   };
 }
+
+ListForm.propTypes = {
+  form: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired
+};
 
 const List = Form.create()(ListForm);
 export default List;

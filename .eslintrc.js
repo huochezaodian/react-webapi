@@ -25,6 +25,7 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     "semi": [2, "always"],
     // warning during development
-    "no-unused-vars": process.env.NODE_ENV === 'production' ? 'error' : 'warn'
+    "no-unused-vars": process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    "array-callback-return": 'off'
   }
 }

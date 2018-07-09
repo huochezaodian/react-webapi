@@ -19,7 +19,7 @@ class BreadCrumbCustom extends Component {
     this.context.router.history.push('/add/decorator');
   }
   handleAddApi () {
-    this.context.router.history.push('/add/api');
+    this.context.router.history.push('/add/api', {id: this.props.info.curParent.key || ''});
   }
   handleAddBread () {
     let key = this.context.router.route.location.pathname.split('/');
@@ -35,8 +35,8 @@ class BreadCrumbCustom extends Component {
       <Row type='flex' align='middle' justify='space-between' className={Styles.minHeight}>
         <Col>
           <Breadcrumb style={{ margin: '16px 0' }}>
-            <Breadcrumb.Item>{parent || curParent.name}</Breadcrumb.Item>
-            <Breadcrumb.Item>{child || curChild.name}</Breadcrumb.Item>
+            <Breadcrumb.Item>{parent || curParent.name || ''}</Breadcrumb.Item>
+            <Breadcrumb.Item>{child || curChild.name || ''}</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
         <Col>

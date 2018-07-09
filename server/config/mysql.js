@@ -57,9 +57,43 @@ const queryApiList = function () {
   return query(sql)
 }
 
-// 查询api列表 by id
-const queryApiListById = function (id) {
-  let sql = `SELECT * FROM api_list WHERE id=${id}`
+// 查询api列表 by url
+const queryApiListByUrl = function (params) {
+  params = JSON.parse(params)
+  let sql = `SELECT * FROM api_list WHERE url='${params.url}'`
+  return query(sql)
+}
+
+// 查询api列表 by urls
+const queryApiListByUrls = function (params) {
+  params = JSON.parse(params)
+  let urls = ""
+  params.urls.split(',').forEach((url, idx) => {
+    if (idx === 0) {
+      urls = "'" + url + "'"
+    } else {
+      urls += ",'" + url + "'"
+    }
+  })
+  let sql = "SELECT * FROM api_list WHERE url in (" + urls + ")"
+  return query(sql)
+}
+
+// 添加api
+const addApi = async function (params) {
+  params = JSON.parse(params)
+  let sql = `insert into api_list(url,name,des,type,data) values('${params.url}','${params.name}','${params.des}','${params.type}','${params.data}')`
+  return query(sql)
+}
+
+// 修改api
+const editApi = function (params) {
+  params = JSON.parse(params)
+  let sql = 'update api_list set '
+  Object.keys(params).forEach(key => {
+    if (key !== 'id') sql += `${key}='${params[key]}'`
+  });
+  sql += `where id=${params.id}`
   return query(sql)
 }
 
@@ -69,18 +103,40 @@ const queryMenusList = function () {
   return query(sql)
 }
 
+// 查询菜单目录信息
+const queryMenuInfo = function (params) {
+  params = JSON.parse(params)
+  let sql = `SELECT * FROM menu_level_1 WHERE id=${params.id}`
+  return query(sql)
+}
+
 // 添加目录
 const addDecorator = function (params) {
   params = JSON.parse(params)
   let sql = `insert into menu_level_1(name,des,child_id) values('${params.name}','${params.des}','')`
-  console.log(sql)
+  return query(sql)
+}
+
+// 修改目录
+const editDecorator = function (params) {
+  params = JSON.parse(params)
+  let sql = 'update menu_level_1 set '
+  Object.keys(params).forEach(key => {
+    if (key !== 'id') sql += `${key}='${params[key]}'`
+  });
+  sql += `where id=${params.id}`
   return query(sql)
 }
 
 module.exports = {
   query,
   queryApiList,
-  queryApiListById,
+  queryApiListByUrl,
+  queryApiListByUrls,
   queryMenusList,
-  addDecorator
+  addDecorator,
+  editDecorator,
+  queryMenuInfo,
+  addApi,
+  editApi
 }

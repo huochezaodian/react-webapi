@@ -4,7 +4,6 @@ import { createBrowserHistory } from 'history';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Layout, Menu, Icon } from 'antd';
-import _ from 'lodash';
 import Styles from './index.css';
 
 import BreadCrumbCustom from './breadCrumb';
@@ -26,26 +25,46 @@ class LayOut extends React.Component {
   };
   componentWillReceiveProps (nextProps) {
     if (nextProps.navs.length > 0) {
-      let key = history.location.pathname.split('/');
-      let curParent = _.find(nextProps.navs, {'key': key[1]}) || {};
-      let curChild = _.find(curParent.children, {'key': key[2]}) || {};
+      let curSelect = {};
+      let key = history.location.pathname;
+      nextProps.navs.map(nav => {
+        if (key === nav.key) {
+          curSelect = nav;
+        } else {
+          nav.children && nav.children.map(child => {
+            if (child.key === key) {
+              curSelect = child;
+            }
+          });
+        }
+      });
       this.setState({
-        curParent,
-        curChild,
+        curParent: curSelect.children ? curSelect : {},
+        curChild: curSelect.children ? curSelect.children : curSelect,
         navs: nextProps.navs
       });
     }
   }
   handleMenuSelect (params) {
-    let curChild = {};
-    let keys = params.key.split('-');
-    let curParent = _.find(this.state.navs, {key: keys[0]});
-    keys[1] && (curChild = Object.assign(curChild, _.find(curParent.children, {key: keys[1]})));
+    let curSelect = {};
+    this.state.navs.map(nav => {
+      if (params.key === nav.key) {
+        curSelect = nav;
+      } else {
+        nav.children && nav.children.map(child => {
+          if (child.key === params.key) {
+            curSelect = {...nav};
+            curSelect.children = child;
+          }
+        });
+      }
+    });
+    console.log(curSelect);
     this.setState({
-      curParent,
-      curChild
+      curParent: curSelect.children ? curSelect : {},
+      curChild: curSelect.children ? curSelect.children : curSelect
     }, () => {
-      history.push('/' + curParent.key + '/' + (curChild.key || ''));
+      history.push(params.key);
     });
   }
   handleBackIndex () {
@@ -53,7 +72,6 @@ class LayOut extends React.Component {
   }
   render () {
     const { curParent, curChild } = this.state;
-    console.log(!curChild.key ? curParent.key : `${curParent.key}-${curChild.key}`);
     return (
       <Router history={history}>
         <Layout style={{ minHeight: '100vh' }}>
@@ -65,7 +83,7 @@ class LayOut extends React.Component {
             <div className={Styles.logo} onClick={this.handleBackIndex.bind(this)}>WEB API</div>
             <Menu
               theme="dark"
-              defaultSelectedKeys={[!curChild.key ? curParent.key : `${curParent.key}-${curChild.key}`]}
+              defaultSelectedKeys={[curChild.key || '']}
               mode="inline"
               defaultOpenKeys={[curParent.key || '']}
               onSelect={this.handleMenuSelect.bind(this)}
@@ -77,7 +95,7 @@ class LayOut extends React.Component {
                     title={<span><Icon type="file" /><span>{nav.name}</span></span>}
                   >
                     {
-                      nav.children.map(item => <Menu.Item key={nav.key + '-' + item.key}>{item.name}</Menu.Item>)
+                      nav.children.map(item => <Menu.Item key={item.key}>{item.name}</Menu.Item>)
                     }
                   </SubMenu>
                   : <Menu.Item key={nav.key}><Icon type="file" />{nav.name}</Menu.Item>
@@ -96,9 +114,9 @@ class LayOut extends React.Component {
                     this.props.navs.map(nav => {
                       return nav.children && nav.children.length > 0
                         ? nav.children.map(item => {
-                          return <Route key={item.key + '-' + nav.key} path={`/${nav.key}/${item.key}`} exact component={List}/>;
+                          return <Route key={item.key} path={item.key} exact component={List}/>;
                         })
-                        : <Route key={nav.key} path={`/${nav.key}`} exact component={Decorator}/>;
+                        : <Route key={nav.key} path={nav.key} exact component={Decorator}/>;
                     })
                   }
                   {/* add api */}

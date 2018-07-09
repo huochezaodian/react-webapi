@@ -18,11 +18,26 @@ const buttonLayout = {
 
 class DecoratorForm extends React.Component {
   state = {
-    params: []
+    name: '',
+    des: '',
+    id: ''
   };
-  static propTypes = {
-    form: PropTypes.object.isRequired
-  };
+  componentWillMount () {
+    const id = this.props.location.pathname.split('/')[1] || '';
+    Util.fetchData('/api/menu/info', {
+      data: { id }
+    }).then(res => {
+      if (res.errorCode === 0) {
+        this.setState({
+          name: res.data[0].name,
+          des: res.data[0].des,
+          id: res.data[0].id
+        });
+      } else {
+        Message.error(res.errorMessage || '获取菜单信息失败');
+      }
+    });
+  }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
@@ -49,6 +64,7 @@ class DecoratorForm extends React.Component {
           label="目录名称"
         >
           {getFieldDecorator('name', {
+            initialValue: this.state.name,
             rules: [{
               required: true, message: '请输入名称!'
             }]
@@ -61,6 +77,7 @@ class DecoratorForm extends React.Component {
           label="目录描述"
         >
           {getFieldDecorator('des', {
+            initialValue: this.state.des
           })(
             <Input size='large' placeholder='请输入目录的描述'/>
           )}
@@ -74,7 +91,9 @@ class DecoratorForm extends React.Component {
 }
 
 DecoratorForm.propTypes = {
-  updateMenu: PropTypes.func.isRequired
+  form: PropTypes.object.isRequired,
+  updateMenu: PropTypes.func.isRequired,
+  location: PropTypes.object.isRequired
 };
 
 const Decorator = Form.create()(DecoratorForm);

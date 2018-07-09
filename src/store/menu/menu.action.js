@@ -5,14 +5,14 @@ export const changeMenu = () => (dispatch) => {
   Util.fetchData('/api/menus', {method: 'get'}).then(res => {
     if (res.errorCode === 0) {
       let newNavs = [];
-      res.data.map(item => {
+      res.data.map((item, idx) => {
         newNavs.push({
-          key: String(item.id),
+          key: '/' + item.id,
           name: item.name,
           children: []
         });
         item.children && item.children.map(child => {
-          newNavs.children.push({
+          newNavs[idx].children.push({
             key: child.url,
             name: child.name
           });
