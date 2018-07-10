@@ -12,11 +12,13 @@ import NotFound from '@src/page/error/NotFound.js';
 import List from '@src/page/main/list';
 import Decorator from '@src/page/main/decorator';
 
+import { changeCurrentMenu } from '../../store/menu/menu.action';
+
 const { Header, Content, Footer, Sider } = Layout;
 const SubMenu = Menu.SubMenu;
 const history = createBrowserHistory();
 
-class LayOut extends React.Component {
+class LayOut extends React.PureComponent {
   state = {
     collapsed: false,
     navs: [],
@@ -33,7 +35,8 @@ class LayOut extends React.Component {
         } else {
           nav.children && nav.children.map(child => {
             if (child.key === key) {
-              curSelect = child;
+              curSelect = {...nav};
+              curSelect.children = child;
             }
           });
         }
@@ -59,16 +62,50 @@ class LayOut extends React.Component {
         });
       }
     });
-    console.log(curSelect);
     this.setState({
       curParent: curSelect.children ? curSelect : {},
       curChild: curSelect.children ? curSelect.children : curSelect
     }, () => {
-      history.push(params.key);
+      this.props.updateCurrentMenu({...curSelect});
+      history.push(params.key, {id: this.state.curParent.id || '', childId: this.state.curChild.key || ''});
     });
   }
   handleBackIndex () {
     window.location.pathname = '/';
+  }
+  handleBackDecorator () {
+    this.setState({
+      curChild: {}
+    }, () => {
+      let curParent = this.state.curParent;
+      let path = curParent.key || '/';
+      history.push(path, {id: curParent.id || ''});
+    });
+  }
+  handleOpenChange (openKeys) {
+    console.log(openKeys);
+    let key = openKeys[openKeys.length - 1];
+    if (key === '') return;
+    let curSelect = {};
+    this.state.navs.map(nav => {
+      if (key === nav.key) {
+        curSelect = nav;
+      } else {
+        nav.children && nav.children.map(child => {
+          if (child.key === key) {
+            curSelect = {...nav};
+            curSelect.children = child;
+          }
+        });
+      }
+    });
+    this.setState({
+      curParent: curSelect.children ? curSelect : {},
+      curChild: curSelect.children ? curSelect.children : curSelect
+    }, () => {
+      this.props.updateCurrentMenu({...curSelect});
+      history.push(key);
+    });
   }
   render () {
     const { curParent, curChild } = this.state;
@@ -83,13 +120,14 @@ class LayOut extends React.Component {
             <div className={Styles.logo} onClick={this.handleBackIndex.bind(this)}>WEB API</div>
             <Menu
               theme="dark"
-              defaultSelectedKeys={[curChild.key || '']}
+              selectedKeys={[curChild.key || '']}
               mode="inline"
-              defaultOpenKeys={[curParent.key || '']}
+              openKeys={[curParent.key || '']}
               onSelect={this.handleMenuSelect.bind(this)}
+              onOpenChange={this.handleOpenChange.bind(this)}
             >
               {
-                this.state.navs.map(nav => nav.children && nav.children.length > 0
+                this.state.navs.map(nav => nav.children
                   ? <SubMenu
                     key={nav.key}
                     title={<span><Icon type="file" /><span>{nav.name}</span></span>}
@@ -106,17 +144,16 @@ class LayOut extends React.Component {
           <Layout>
             <Header style={{ background: '#fff', padding: 0 }} />
             <Content style={{ margin: '0 16px' }}>
-              <BreadCrumbCustom info={{curParent, curChild}}/>
+              <BreadCrumbCustom info={{curParent, curChild}} updateBread={this.handleBackDecorator.bind(this)}/>
               <div className={Styles.content}>
                 <Switch>
                   <Route path='/' exact component={IndexPage}/>
                   {
-                    this.props.navs.map(nav => {
-                      return nav.children && nav.children.length > 0
-                        ? nav.children.map(item => {
-                          return <Route key={item.key} path={item.key} exact component={List}/>;
-                        })
-                        : <Route key={nav.key} path={nav.key} exact component={Decorator}/>;
+                    this.state.navs.map(nav => <Route key={nav.key} path={nav.key} exact component={Decorator}/>)
+                  }
+                  {
+                    this.state.navs.map(nav => {
+                      return nav.children && nav.children.map(item => <Route key={item.key} path={item.key} exact component={List}/>);
                     })
                   }
                   {/* add api */}
@@ -139,13 +176,21 @@ class LayOut extends React.Component {
 }
 
 LayOut.propTypes = {
-  navs: PropTypes.array.isRequired
+  navs: PropTypes.array.isRequired,
+  curSelect: PropTypes.object.isRequired,
+  updateCurrentMenu: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  navs: state.menu.navs
+  navs: state.menu.navs,
+  curSelect: state.menu.curMenu
+});
+
+const mapDispatchToProps = dispatch => ({
+  updateCurrentMenu: (curMenu) => dispatch(changeCurrentMenu(curMenu))
 });
 
 export default connect(
-  mapStateToProps
+  mapStateToProps,
+  mapDispatchToProps
 )(LayOut);

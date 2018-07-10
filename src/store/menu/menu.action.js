@@ -7,12 +7,14 @@ export const changeMenu = () => (dispatch) => {
       let newNavs = [];
       res.data.map((item, idx) => {
         newNavs.push({
+          id: item.id,
           key: '/' + item.id,
           name: item.name,
           children: []
         });
         item.children && item.children.map(child => {
           newNavs[idx].children.push({
+            id: child.id,
             key: child.url,
             name: child.name
           });
@@ -28,4 +30,11 @@ export const changeMenu = () => (dispatch) => {
       Message.error(res.errorMessage || '请求错误');
     }
   });
+};
+
+export const changeCurrentMenu = (curMenu) => {
+  return {
+    type: 'CHANGE_CURRENT_MENU',
+    value: curMenu
+  };
 };

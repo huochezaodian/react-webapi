@@ -1,7 +1,11 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import {Form, Input, Button, Checkbox, message as Message} from 'antd';
+import {Form, Input, Button, Checkbox, message as Message, Row, Col} from 'antd';
 import Util from '@src/config/Util';
+import Styles from './list.css';
+
+import { changeMenu } from '../../store/menu/menu.action';
 const FormItem = Form.Item;
 const CheckboxGroup = Checkbox.Group;
 
@@ -9,24 +13,41 @@ const formItemLayout = {
   // labelCol: { span: 2 },
   // wrapperCol: { span: 12 }
 };
-const buttonLayout = {
-  wrapperCol: { span: 2, offset: 11 }
-};
 
 const methods = ['get', 'post'];
 
 class ListForm extends React.Component {
   state = {
-    parentId: ''
+    parentId: '',
+    id: '',
+    name: '',
+    des: '',
+    type: '',
+    data: ''
   };
   componentWillMount () {
     const params = this.props.history.location.state;
     if (params) {
-      this.setState({
-        parentId: params.id || ''
+      Util.fetchData('/api/api/info', {
+        data: {
+          url: params.childId
+        }
+      }).then(res => {
+        if (res.errorCode === 0) {
+          res.data.length > 0 && this.setState({
+            name: res.data[0].name,
+            url: res.data[0].url,
+            des: res.data[0].des,
+            id: res.data[0].id,
+            type: res.data[0].type,
+            data: res.data[0].data
+          });
+        } else {
+          Message.error(res.errorMessage || '获取信息失败');
+        }
       });
     } else {
-      this.props.history.goBack();
+      window.location.pathname = '/';
     }
   }
   handleSubmit = (e) => {
@@ -34,18 +55,31 @@ class ListForm extends React.Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
         let data = {...values};
-        data.parentId = this.state.parentId;
+        data.parentId = this.props.history.location.state.id.slice(1);
         data.type = data.type.join(',');
         Util.fetchData('/api/add/api', {
           data
         }).then(res => {
           if (res.errorCode === 0) {
             Message.success('保存成功');
-            this.props.history.push('/' + this.state.parentId + values.url);
+            this.props.updateMenu();
           } else {
             Message.error(res.errorMessage || '提交失败');
           }
         });
+      }
+    });
+  }
+  handleDelete = e => {
+    e.preventDefault();
+    Util.fetchData('/api/delete/api', {
+      data: {url: this.state.url}
+    }).then(res => {
+      if (res.errorCode === 0) {
+        Message.success('删除成功');
+        this.props.updateMenu();
+      } else {
+        Message.error(res.errorMessage || '删除失败');
       }
     });
   }
@@ -58,6 +92,7 @@ class ListForm extends React.Component {
           label="接口名称"
         >
           {getFieldDecorator('name', {
+            initialValue: this.state.name,
             rules: [{
               required: true, message: '请输入名称!'
             }]
@@ -70,10 +105,11 @@ class ListForm extends React.Component {
           label="接口"
         >
           {getFieldDecorator('url', {
+            initialValue: this.state.url,
             rules: [{
               required: true, message: '请输入接口!'
             }, {
-              partten: /^\/\w+/, message: '开头必须有/'
+              pattern: /^\/\w+/, message: '开头必须有/'
             }]
           })(
             <Input size='large' placeholder='请输入接口'/>
@@ -84,6 +120,7 @@ class ListForm extends React.Component {
           label="接口描述"
         >
           {getFieldDecorator('des', {
+            initialValue: this.state.des
           })(
             <Input size='large' placeholder='请输入接口的描述'/>
           )}
@@ -93,6 +130,7 @@ class ListForm extends React.Component {
           label="请求方式"
         >
           {getFieldDecorator('type', {
+            initialValue: this.state.type === '' ? [] : this.state.type.split(','),
             rules: [{
               required: true, message: '请选择请求方式!'
             }]
@@ -105,6 +143,7 @@ class ListForm extends React.Component {
           label="返回数据"
         >
           {getFieldDecorator('data', {
+            initialValue: this.state.data,
             rules: [{
               required: true, message: '请填写返回数据!'
             }]
@@ -112,8 +151,13 @@ class ListForm extends React.Component {
             <Input.TextArea placeholder='请填写返回数据' rows={8}/>
           )}
         </FormItem>
-        <FormItem {...buttonLayout}>
-          <Button size='large' type="primary" onClick={this.handleSubmit}>保存</Button>
+        <FormItem>
+          <Row type='flex'>
+            <Col><Button className={Styles.button} size='large' type="primary" onClick={this.handleSubmit}>保存</Button></Col>
+            {
+              this.state.id && <Col><Button size='large' type="primary" onClick={this.handleDelete}>删除</Button></Col>
+            }
+          </Row>
         </FormItem>
       </Form>
     );
@@ -122,8 +166,20 @@ class ListForm extends React.Component {
 
 ListForm.propTypes = {
   form: PropTypes.object.isRequired,
+  updateMenu: PropTypes.func.isRequired,
   history: PropTypes.object.isRequired
 };
 
 const List = Form.create()(ListForm);
-export default List;
+
+const mapStateToProps = state => ({
+  curMenu: state.menu.curMenu
+});
+const mapDispatchToProps = dispatch => ({
+  updateMenu: () => dispatch(changeMenu())
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(List);

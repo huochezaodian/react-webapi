@@ -97,6 +97,13 @@ const editApi = function (params) {
   return query(sql)
 }
 
+// 删除api
+const deleteApi = function (params) {
+  params = JSON.parse(params)
+  let sql = `delete from api_list where url='${params.url}'`
+  return query(sql)
+}
+
 // 查询菜单列表
 const queryMenusList = function () {
   let sql = 'SELECT * FROM `menu_level_1`'
@@ -128,6 +135,13 @@ const editDecorator = function (params) {
   return query(sql)
 }
 
+// 删除目录
+const deleteDecorator = function (params) {
+  params = JSON.parse(params)
+  let sql = `delete from menu_level_1 where id=${params.id}`
+  return query(sql)
+}
+
 module.exports = {
   query,
   queryApiList,
@@ -136,7 +150,9 @@ module.exports = {
   queryMenusList,
   addDecorator,
   editDecorator,
+  deleteDecorator,
   queryMenuInfo,
   addApi,
-  editApi
+  editApi,
+  deleteApi
 }

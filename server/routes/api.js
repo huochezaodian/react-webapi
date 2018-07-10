@@ -34,7 +34,7 @@ router.get('/menus', async function (ctx) {
     let promises = data.map((menu, idx) => {
       return new Promise((res, rej) => {
         let children = []
-        menu.child_id && ctx.mysql.queryApiListByUrls(JSON.stringify({urls: menu.child_id})).then(list => {
+        ctx.mysql.queryApiListByUrls(JSON.stringify({urls: menu.child_id})).then(list => {
           children = [...list]
           data[idx].children = children
           res()
@@ -93,8 +93,69 @@ router.post('/edit/decorator', async function (ctx) {
   ctx.body = res
 })
 
+router.post('/delete/decorator', async function (ctx) {
+  let res = {};
+  let menu = null;
+  await ctx.mysql.queryMenuInfo(ctx.request.body).then(data => {
+    menu = data
+  }).catch(err => {
+    res = {
+      errorCode: 99,
+      errorMessage: err.message || 'error'
+    }
+  })
+
+  if (res.errorCode !== undefined) {
+    ctx.body = res
+    return;
+  }
+
+  if (menu.length > 0 && menu[0].child_id.length > 0) {
+    let promises = menu[0].child_id.split(',').map(child => {
+      return new Promise((res,rej) => {
+        ctx.mysql.deleteApi(JSON.stringify({url: child})).then(list => {
+          res()
+        }).catch(err => {
+          rej(err)
+        })
+      })
+    })
+    await Promise.all(promises).catch(err => {
+      res = {
+        errorCode: 99,
+        errorMessage: err.message || 'error'
+      }
+    })
+  }
+
+  if (res.errorCode !== undefined) {
+    ctx.body = res
+    return;
+  }
+  await ctx.mysql.deleteDecorator(ctx.request.body).then(data => {
+    res = {
+      errorCode: 0,
+      data: data
+    }
+  }).catch(err => {
+    res = {
+      errorCode: 99,
+      errorMessage: err.message || 'error'
+    }
+  })
+
+  ctx.body = res;
+})
+
 router.post('/menu/info', async function (ctx) {
   let res = {};
+  if (!JSON.parse(ctx.request.body).id) {
+    ctx.body = {
+      errorCode: 0,
+      data: []
+    }
+    return;
+  }
   await ctx.mysql.queryMenuInfo(ctx.request.body).then(data => {
     res = {
       errorCode: 0,
@@ -174,6 +235,23 @@ router.post('/edit/api', async function (ctx) {
 router.post('/api/info', async function (ctx) {
   let res = {};
   await ctx.mysql.queryApiListByUrl(ctx.request.body).then(data => {
+    res = {
+      errorCode: 0,
+      data: data
+    }
+  }).catch(err => {
+    res = {
+      errorCode: 99,
+      errorMessage: err.message || 'error'
+    }
+  })
+
+  ctx.body = res;
+})
+
+router.post('/delete/api', async function (ctx) {
+  let res = {};
+  await ctx.mysql.deleteApi(ctx.request.body).then(data => {
     res = {
       errorCode: 0,
       data: data

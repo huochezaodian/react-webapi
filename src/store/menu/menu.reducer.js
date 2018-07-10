@@ -1,5 +1,6 @@
 const initialState = {
-  navs: []
+  navs: [],
+  curMenu: {}
 };
 
 const getMenus = (state = initialState, action) => {
@@ -7,6 +8,10 @@ const getMenus = (state = initialState, action) => {
     case 'CHANGE_MENU':
       return Object.assign({}, state, {
         navs: action.value
+      });
+    case 'CHANGE_CURRENT_MENU':
+      return Object.assign({}, state, {
+        curMenu: action.value
       });
     default:
       return state;

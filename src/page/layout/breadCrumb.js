@@ -10,7 +10,8 @@ class BreadCrumbCustom extends Component {
     router: PropTypes.object.isRequired
   };
   static propTypes = {
-    info: PropTypes.object.isRequired
+    info: PropTypes.object.isRequired,
+    updateBread: PropTypes.func.isRequired
   };
   static defaultProps = {
     info: {curParent: {}, curChild: {}}
@@ -28,6 +29,9 @@ class BreadCrumbCustom extends Component {
       'child': key[1] === 'add' && key[2] ? key[2] : ''
     };
   }
+  handleBackDecorator () {
+    this.props.updateBread();
+  }
   render () {
     const { curParent, curChild } = this.props.info;
     const { parent, child } = this.handleAddBread();
@@ -40,6 +44,9 @@ class BreadCrumbCustom extends Component {
           </Breadcrumb>
         </Col>
         <Col>
+          {
+            curChild.key && <Button type='primary' className={Styles.marginLeft} icon='rollback' onClick={this.handleBackDecorator.bind(this)}>返回上一级</Button>
+          }
           <Button type='primary' className={Styles.marginLeft} icon='plus' onClick={this.handleAddDecorator.bind(this)}>添加目录</Button>
           {
             curParent.key && <Button type='primary' className={Styles.marginLeft} icon='plus' onClick={this.handleAddApi.bind(this)}>添加接口</Button>
