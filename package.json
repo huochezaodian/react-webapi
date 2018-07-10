@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "antd": "^3.6.4",
+    "async-child-process": "^1.1.1",
+    "async-file": "^2.0.2",
     "autoprefixer": "7.1.6",
     "babel-core": "6.26.0",
     "babel-eslint": "7.2.3",
@@ -63,7 +65,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
-    "lint": "eslint --ext .js src --fix"
+    "lint": "eslint --ext .js src --fix",
+    "publish": "node scripts/publish.js ./server/public"
   },
   "jest": {
     "collectCoverageFrom": [
