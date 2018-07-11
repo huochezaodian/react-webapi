@@ -66,7 +66,7 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "lint": "eslint --ext .js src --fix",
-    "publish": "node scripts/publish.js ./server/public"
+    "publish": "node scripts/publish.js ./server"
   },
   "jest": {
     "collectCoverageFrom": [

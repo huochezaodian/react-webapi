@@ -25,20 +25,25 @@ if (serverPath.substr(0, 1) != '/') {
       result = await fs.exists(serverPath);
       if (result) {
         // 发布路径可达
-        var buildFolder = serverPath + '/build';
+        var buildFolder = path.resolve(serverPath + '/public');
         result = await fs.exists(buildFolder);
         if (result) {
           // 如果已经存在build文件夹,先清除旧目录再执行复制
           let cmd = `rm -rf ${buildFolder}`;
           let stdout = await execAsync(cmd);
-          if (stdout.stderr.length != 0) {
+          if (stdout.stderr.length !== 0) {
             throw new Error('copy error');
           }
         }
         // 如果不存在build文件夹
-        let cmd = `xcopy /e/r ${buildPath} ${serverPath}`;
+        let cmdCre = `mkdir ${buildFolder}`;
+        let stdoutCre = await execAsync(cmdCre);
+        if (stdoutCre.stderr.length !== 0) {
+          throw new Error('create error');
+        }
+        let cmd = `xcopy /e/r ${buildPath} ${buildFolder}`;
         let stdout = await execAsync(cmd);
-        if (stdout.stderr.length != 0) {
+        if (stdout.stderr.length !== 0) {
           throw new Error('copy error');
         }
       } else {

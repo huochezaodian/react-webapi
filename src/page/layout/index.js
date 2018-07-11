@@ -26,7 +26,7 @@ class LayOut extends React.PureComponent {
     curChild: {}
   };
   componentWillReceiveProps (nextProps) {
-    if (nextProps.navs.length > 0) {
+    if (nextProps.navs) {
       let curSelect = {};
       let key = history.location.pathname;
       nextProps.navs.map(nav => {
