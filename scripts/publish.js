@@ -9,7 +9,7 @@ let serverPath = process.argv[2];
 /*
 判断传入的是绝对路径还是相对路径
 */
-if (serverPath.substr(0, 1) != '/') {
+if (serverPath.substr(0, 1) !== '/') {
   serverPath = path.resolve(__dirname, '../', serverPath);
 }
 (async function () {
