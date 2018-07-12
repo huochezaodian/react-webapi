@@ -41,12 +41,18 @@ class DecoratorForm extends React.Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        Util.fetchData('/api/add/decorator', {
-          data: values
+        let data = {...values};
+        let url = '/api/add/decorator';
+        if (this.state.id) {
+          url = '/api/edit/decorator';
+          data.id = this.state.id;
+        }
+        Util.fetchData(url, {
+          data
         }).then(res => {
           if (res.errorCode === 0) {
             Message.success('保存成功');
-            this.props.updateMenu();
+            if (!this.state.id) this.props.updateMenu();
           } else {
             Message.error(res.errorMessage || '提交失败');
           }

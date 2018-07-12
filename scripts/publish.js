@@ -17,10 +17,10 @@ if (serverPath.substr(0, 1) !== '/') {
     let buildPath = path.resolve(__dirname, '../', 'build');
     console.log(`\x1b[34m build path :" ${buildPath}`);
     console.log(`\x1b[34m resolve path :" ${serverPath}`);
-    // 检查项目是否已经build,默认为build文件夹
+    // 检查项目是否已经build,默认为public文件夹
     var result = await fs.exists(buildPath);
     if (result) {
-      // 项目已经build
+      // 项目已经public
       // 判断发布路径是否可达
       result = await fs.exists(serverPath);
       if (result) {
@@ -28,23 +28,24 @@ if (serverPath.substr(0, 1) !== '/') {
         var buildFolder = path.resolve(serverPath + '/public');
         result = await fs.exists(buildFolder);
         if (result) {
-          // 如果已经存在build文件夹,先清除旧目录再执行复制
-          let cmd = `rm -rf ${buildFolder}`;
+          // 如果已经存在public文件夹,先清除旧目录再执行复制
+          let cmd = `rmdir /s/q ${buildFolder}`;
           let stdout = await execAsync(cmd);
           if (stdout.stderr.length !== 0) {
             throw new Error('copy error');
           }
         }
-        // 如果不存在build文件夹
+        // 如果不存在public文件夹
         let cmdCre = `mkdir ${buildFolder}`;
         let stdoutCre = await execAsync(cmdCre);
         if (stdoutCre.stderr.length !== 0) {
           throw new Error('create error');
-        }
-        let cmd = `xcopy /e/r ${buildPath} ${buildFolder}`;
-        let stdout = await execAsync(cmd);
-        if (stdout.stderr.length !== 0) {
-          throw new Error('copy error');
+        } else {
+          let cmd = `xcopy /e/r ${buildPath} ${buildFolder}`;
+          let stdout = await execAsync(cmd);
+          if (stdout.stderr.length !== 0) {
+            throw new Error('copy error');
+          }
         }
       } else {
         throw new Error('did not publish to this folder');

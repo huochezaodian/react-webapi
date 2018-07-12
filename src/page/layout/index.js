@@ -67,7 +67,7 @@ class LayOut extends React.PureComponent {
       curChild: curSelect.children ? curSelect.children : curSelect
     }, () => {
       this.props.updateCurrentMenu({...curSelect});
-      history.push(params.key, {id: this.state.curParent.id || '', childId: this.state.curChild.key || ''});
+      history.push(params.key, {id: this.state.curParent.key || '', childId: this.state.curChild.key || ''});
     });
   }
   handleBackIndex () {
@@ -79,7 +79,7 @@ class LayOut extends React.PureComponent {
     }, () => {
       let curParent = this.state.curParent;
       let path = curParent.key || '/';
-      history.push(path, {id: curParent.id || ''});
+      history.push(path, {id: curParent.key || ''});
     });
   }
   handleOpenChange (openKeys) {

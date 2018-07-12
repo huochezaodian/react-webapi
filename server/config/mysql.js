@@ -60,6 +60,7 @@ const queryApiList = function () {
 // 查询api列表 by url
 const queryApiListByUrl = function (params) {
   params = JSON.parse(params)
+  console.log(params)
   let sql = `SELECT * FROM api_list WHERE url='${params.url}'`
   return query(sql)
 }
@@ -90,10 +91,12 @@ const addApi = async function (params) {
 const editApi = function (params) {
   params = JSON.parse(params)
   let sql = 'update api_list set '
+  let keys = []
   Object.keys(params).forEach(key => {
-    if (key !== 'id') sql += `${key}='${params[key]}'`
+    if (key !== 'id' && key !== 'parentId') keys.push(`${key}='${params[key]}'`)
   });
-  sql += `where id=${params.id}`
+  sql += keys.join(',')
+  sql += ` where id=${params.id}`
   return query(sql)
 }
 
@@ -128,10 +131,13 @@ const addDecorator = function (params) {
 const editDecorator = function (params) {
   params = JSON.parse(params)
   let sql = 'update menu_level_1 set '
+  let keys = [];
   Object.keys(params).forEach(key => {
-    if (key !== 'id') sql += `${key}='${params[key]}'`
+    if (key !== 'id') keys.push(`${key}='${params[key]}'`)
   });
-  sql += `where id=${params.id}`
+  sql += keys.join(',')
+  sql += ` where id=${params.id}`
+  console.log(sql)
   return query(sql)
 }
 

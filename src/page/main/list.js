@@ -55,14 +55,19 @@ class ListForm extends React.Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
         let data = {...values};
+        let url = '/api/add/api';
+        if (this.state.id) {
+          url = '/api/edit/api';
+          data.id = this.state.id;
+        }
         data.parentId = this.props.history.location.state.id.slice(1);
         data.type = data.type.join(',');
-        Util.fetchData('/api/add/api', {
+        Util.fetchData(url, {
           data
         }).then(res => {
           if (res.errorCode === 0) {
             Message.success('保存成功');
-            this.props.updateMenu();
+            if (!this.state.id) this.props.updateMenu();
           } else {
             Message.error(res.errorMessage || '提交失败');
           }

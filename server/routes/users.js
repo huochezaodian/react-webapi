@@ -2,11 +2,10 @@ const router = require('koa-router')()
 
 router.prefix('/apitest')
 
-router.all('/:api', async function (ctx) {
+router.all('*', async function (ctx) {
   let res = {}
-  let url = '/' + ctx.params.api
+  let url = '/' + ctx.path.split('/').slice(2).join('/')
   let method = ctx.method
-  console.log(url)
   await ctx.mysql.queryApiListByUrl(JSON.stringify({url})).then(data => {
     if (data.length === 0) {
       res = {
